@@ -151,7 +151,7 @@ class FileSystem(object):
         if('Filename' in config):
             config_filename = config['Filename']
             if('timestamp' in config_filename):
-                timestamp_definition = config['timestamp']
+                timestamp_definition = config_filename['timestamp']
 
         file_name = '%s-%s.%s' % (
             time.strftime(
