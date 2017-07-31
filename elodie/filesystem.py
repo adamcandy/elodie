@@ -147,6 +147,8 @@ class FileSystem(object):
 
         config = load_config()
 
+        # If Filename is in the config, and contains a timestamp
+        # definition, use this in destination filenames
         timestamp_definition = self.default_timestamp_definition
         if('Filename' in config):
             config_filename = config['Filename']
@@ -411,20 +413,48 @@ class FileSystem(object):
         metadata = media.get_metadata()
         date_taken = metadata['date_taken']
         base_name = metadata['base_name']
-        year_month_day_match = re.search(
-            '^(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})',
-            base_name
-        )
-        if(year_month_day_match is not None):
-            (year, month, day, hour, minute, second) = year_month_day_match.groups()  # noqa
-            date_taken = time.strptime(
-                '{}-{}-{} {}:{}:{}'.format(year, month, day, hour, minute, second),  # noqa
-                '%Y-%m-%d %H:%M:%S'
-            )
 
-            os.utime(file_path, (time.time(), time.mktime(date_taken)))
-        else:
+        config = load_config()
+
+        # If Filename is in the config, and contains a timestamp
+        # definition, use this in destination filenames
+        timestamp_definition = self.default_timestamp_definition
+        if('Filename' in config):
+            config_filename = config['Filename']
+            if('timestamp' in config_filename):
+                timestamp_definition = config_filename['timestamp']
+
+        try:
+            timestamp = base_name.split('-')[0]
+            #date_taken2 = time.strptime(timestamp, timestamp_definition)
+            #print(date_taken2.dst())
+            os.utime(file_path, (time.time(), time.mktime(time.strptime(timestamp, timestamp_definition))))
+        except:
             # We don't make any assumptions about time zones and
             # assume local time zone.
-            date_taken_in_seconds = time.mktime(date_taken)
-            os.utime(file_path, (time.time(), (date_taken_in_seconds)))
+            # Same about DST.
+            from datetime import datetime
+            #print(date_taken)
+            #print(time.mktime(date_taken))
+            #print(time.mktime(date_taken) - int(datetime.datetime(*date_taken[:6]).strftime("%s")))
+            os.utime(file_path, (time.time(), int(datetime(*date_taken[:6]).strftime("%s"))))
+            #os.utime(file_path, (time.time(), time.mktime(date_taken)))
+
+
+        # year_month_day_match = re.search(
+        #     '^(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})',
+        #     base_name
+        # )
+        # if(year_month_day_match is not None):
+        #     (year, month, day, hour, minute, second) = year_month_day_match.groups()  # noqa
+        #     date_taken = time.strptime(
+        #         '{}-{}-{} {}:{}:{}'.format(year, month, day, hour, minute, second),  # noqa
+        #         '%Y-%m-%d %H:%M:%S'
+        #     )
+
+        #     os.utime(file_path, (time.time(), time.mktime(date_taken)))
+        # else:
+        #     # We don't make any assumptions about time zones and
+        #     # assume local time zone.
+        #     date_taken_in_seconds = time.mktime(date_taken)
+        #     os.utime(file_path, (time.time(), (date_taken_in_seconds)))
