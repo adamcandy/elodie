@@ -31,6 +31,7 @@ class FileSystem(object):
                             geolocation.__DEFAULT_LOCATION__
                          ),
         }
+        self.default_timestamp_definition = '%Y-%m-%d_%H-%M-%S'
         self.cached_folder_path_definition = None
         self.default_parts = ['album', 'city', 'state', 'country']
 
@@ -144,9 +145,17 @@ class FileSystem(object):
             base_name = base_name.replace('-%s' % title_sanitized, '')
             base_name = '%s-%s' % (base_name, title_sanitized)
 
+        config = load_config()
+
+        timestamp_definition = self.default_timestamp_definition
+        if('Filename' in config):
+            config_filename = config['Filename']
+            if('timestamp' in config_filename):
+                timestamp_definition = config['timestamp']
+
         file_name = '%s-%s.%s' % (
             time.strftime(
-                '%Y-%m-%d_%H-%M-%S',
+                timestamp_definition,
                 metadata['date_taken']
             ),
             base_name,
