@@ -266,11 +266,10 @@ class FileSystem(object):
                     break
                 elif part in ('album'):
                     if metadata['album']:
-                        path.append(metadata['album'])
+                        path.append(str(metadata['album']))
                         break
                 elif part.startswith('"') and part.endswith('"'):
                     path.append(part[1:-1])
-
         return os.path.join(*path)
 
     def parse_mask_for_location(self, mask, location_parts, place_name):
