@@ -17,7 +17,7 @@ from elodie import log
 from elodie.config import load_config
 from elodie.localstorage import Db
 from elodie.media.base import Base, get_all_subclasses
-
+from elodie import constants
 
 class FileSystem(object):
     """A class for interacting with the file system."""
@@ -31,7 +31,6 @@ class FileSystem(object):
                             geolocation.__DEFAULT_LOCATION__
                          ),
         }
-        self.default_timestamp_definition = '%Y-%m-%d_%H-%M-%S'
         self.cached_folder_path_definition = None
         self.default_parts = ['album', 'city', 'state', 'country']
 
@@ -128,11 +127,24 @@ class FileSystem(object):
             # We want to remove the date prefix we add to the name.
             # This helps when re-running the program on file which were already
             #   processed.
-            base_name = re.sub(
-                '^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}-',
-                '',
-                metadata['base_name']
-            )
+            # TODO not futureproof, fix for now new self.default_timestamp_definition
+            #base_name = re.sub(
+            #    '^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}-',
+            #    '',
+            #    metadata['base_name']
+            #)
+            # Alternative way to strip leading timestamp from filename
+            # to establish the name
+            # Note choice here will update timestamp from EXIF, if EXIF
+            # available and different to timestamp
+            base_name = metadata['base_name']
+            try:
+                # Also update metadata?
+                timestamp = base_name.split('-')[0]
+                time.strptime(timestamp, constants.default_timestamp_definition)
+                base_name = base_name.split('-')[1]
+            except:
+                pass
             if(len(base_name) == 0):
                 base_name = metadata['base_name']
 
@@ -145,23 +157,33 @@ class FileSystem(object):
             base_name = base_name.replace('-%s' % title_sanitized, '')
             base_name = '%s-%s' % (base_name, title_sanitized)
 
-        config = load_config()
+        #print(metadata['date_taken'])
+        #import sys
+        #sys.exit()
 
-        # If Filename is in the config, and contains a timestamp
-        # definition, use this in destination filenames
-        timestamp_definition = self.default_timestamp_definition
-        if('Filename' in config):
-            config_filename = config['Filename']
-            if('timestamp' in config_filename):
-                timestamp_definition = config_filename['timestamp']
+        # Check if filename has a datestamp already
+        # Avoid duplication of timestamp at the start:
+        try:
+            # Also update metadata?
+            timestamp = base_name.split('-')[0]
+            time.strptime(timestamp, constants.default_timestamp_definition)
+            #print(timestamp)
+            #print(time.strptime(timestamp, constants.default_timestamp_definition))
+            #timestamp = time.strftime(constants.default_timestamp_definition, time.mktime(time.strptime(timestamp, constants.default_timestamp_definition)))
+            #print(timestamp)
+            form = '%(base_name)s.%(extension)s'
+        except:
+            timestamp = time.strftime(constants.default_timestamp_definition, metadata['date_taken'])
 
-        file_name = '%s-%s.%s' % (
-            time.strftime(
-                timestamp_definition,
-                metadata['date_taken']
-            ),
-            base_name,
-            metadata['extension'])
+        #print('  '+form)
+
+        form = '%(timestamp)s-%(base_name)s.%(extension)s'
+        file_name = form % {
+            'timestamp': timestamp,
+            'base_name': base_name,
+            'extension': metadata['extension']
+            }
+
         return file_name.lower()
 
     def get_folder_path_definition(self):
@@ -413,21 +435,11 @@ class FileSystem(object):
         date_taken = metadata['date_taken']
         base_name = metadata['base_name']
 
-        config = load_config()
-
-        # If Filename is in the config, and contains a timestamp
-        # definition, use this in destination filenames
-        timestamp_definition = self.default_timestamp_definition
-        if('Filename' in config):
-            config_filename = config['Filename']
-            if('timestamp' in config_filename):
-                timestamp_definition = config_filename['timestamp']
-
         try:
             timestamp = base_name.split('-')[0]
-            #date_taken2 = time.strptime(timestamp, timestamp_definition)
+            #date_taken2 = time.strptime(timestamp, constants.default_timestamp_definition)
             #print(date_taken2.dst())
-            os.utime(file_path, (time.time(), time.mktime(time.strptime(timestamp, timestamp_definition))))
+            os.utime(file_path, (time.time(), time.mktime(time.strptime(timestamp, constants.default_timestamp_definition))))
         except:
             # We don't make any assumptions about time zones and
             # assume local time zone.
