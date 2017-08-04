@@ -138,15 +138,15 @@ class FileSystem(object):
             # Note choice here will update timestamp from EXIF, if EXIF
             # available and different to timestamp
             base_name = metadata['base_name']
-            try:
-                # Also update metadata?
-                timestamp = base_name.split('-')[0]
-                time.strptime(timestamp, constants.default_timestamp_definition)
-                base_name = base_name.split('-')[1]
-            except:
-                pass
-            if(len(base_name) == 0):
-                base_name = metadata['base_name']
+        try:
+            # Also update metadata?
+            timestamp = base_name.split('-', 1)[0]
+            time.strptime(timestamp, constants.default_timestamp_definition)
+            base_name_new = base_name.split('-', 1)[1]
+        except:
+            pass
+        if(len(base_name_new) != 0):
+            base_name = base_name_new
 
         if(
             'title' in metadata and
@@ -160,22 +160,8 @@ class FileSystem(object):
         #print(metadata['date_taken'])
         #import sys
         #sys.exit()
-
-        # Check if filename has a datestamp already
-        # Avoid duplication of timestamp at the start:
-        try:
-            # Also update metadata?
-            timestamp = base_name.split('-')[0]
-            time.strptime(timestamp, constants.default_timestamp_definition)
-            #print(timestamp)
-            #print(time.strptime(timestamp, constants.default_timestamp_definition))
-            #timestamp = time.strftime(constants.default_timestamp_definition, time.mktime(time.strptime(timestamp, constants.default_timestamp_definition)))
-            #print(timestamp)
-            form = '%(base_name)s.%(extension)s'
-        except:
-            timestamp = time.strftime(constants.default_timestamp_definition, metadata['date_taken'])
-
-        #print('  '+form)
+        
+        timestamp = time.strftime(constants.default_timestamp_definition, metadata['date_taken'])
 
         form = '%(timestamp)s-%(base_name)s.%(extension)s'
         file_name = form % {
@@ -290,6 +276,24 @@ class FileSystem(object):
                     if metadata['album']:
                         path.append(str(metadata['album']))
                         break
+                elif part in ('datelocation'):
+                    # TODO Requires generalisation
+                    mask = '%Y%m%d'
+                    datestamp = time.strftime(mask, metadata['date_taken'])
+                    mask = '%city, %state, %country'
+                    place_name = geolocation.place_name(
+                        metadata['latitude'],
+                        metadata['longitude']
+                    )
+
+                    location_parts = re.findall('(%[^%]+)', mask)
+                    parsed_folder_name = self.parse_mask_for_location(
+                        mask,
+                        location_parts,
+                        place_name,
+                    )
+                    path.append(datestamp + ' ' + parsed_folder_name)
+                    break
                 elif part.startswith('"') and part.endswith('"'):
                     path.append(part[1:-1])
         return os.path.join(*path)

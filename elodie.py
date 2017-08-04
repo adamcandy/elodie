@@ -28,7 +28,7 @@ from elodie.media.audio import Audio
 from elodie.media.photo import Photo
 from elodie.media.video import Video
 from elodie.result import Result
-from elodie.config import load_config
+from elodie.config import load_config, load_timestamp_definition
 
 FILESYSTEM = FileSystem()
 
@@ -94,6 +94,7 @@ def _import(destination, source, file, album_from_folder, move, trash, allow_dup
     constants.debug = debug
     has_errors = False
     result = Result()
+    load_timestamp_definition()
 
     config = load_config()
 
@@ -154,6 +155,7 @@ def _generate_db(source, debug):
     constants.debug = debug
     result = Result()
     source = os.path.abspath(os.path.expanduser(source))
+    load_timestamp_definition()
 
     if not os.path.isdir(source):
         log.error('Source is not a valid directory %s' % source)
@@ -178,6 +180,7 @@ def _generate_db(source, debug):
 def _verify(debug):
     constants.debug = debug
     result = Result()
+    load_timestamp_definition()
     db = Db()
     for checksum, file_path in db.all():
         if not os.path.isfile(file_path):
@@ -249,6 +252,7 @@ def _update(album, location, time, title, paths, debug):
     constants.debug = debug
     has_errors = False
     result = Result()
+    load_timestamp_definition()
 
     files = set()
     for path in paths:

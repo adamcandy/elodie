@@ -57,45 +57,58 @@ class Video(Media):
 
         The date value returned is defined by the min() of mtime and ctime.
 
-        :returns: time object or None for non-photo files or 0 timestamp
+        :returns: time object or None for non-photo files
         """
         if(not self.is_valid()):
             return None
 
         source = self.source
-        seconds_since_epoch = min(os.path.getmtime(source), os.path.getctime(source))  # noqa
 
+        seconds_since_epoch = 0
         exif = self.get_exiftool_attributes()
-        for date_key in self.exif_map['date_taken']:
-            if date_key in exif:
-                # Example date strings we want to parse
-                # 2015:01:19 12:45:11-08:00
-                # 2013:09:30 07:06:05
-                date = re.search('([0-9: ]+)([-+][0-9:]+)?', exif[date_key])
-                if(date is not None):
-                    date_string = date.group(1)
-                    date_offset = date.group(2)
-                    try:
-                        exif_seconds_since_epoch = time.mktime(
-                            datetime.strptime(
-                                date_string,
-                                '%Y:%m:%d %H:%M:%S'
-                            ).timetuple()
-                        )
-                        if(exif_seconds_since_epoch < seconds_since_epoch):
-                            seconds_since_epoch = exif_seconds_since_epoch
-                            if date_offset is not None:
-                                offset_parts = date_offset[1:].split(':')
-                                offset_seconds = int(offset_parts[0]) * 3600
-                                offset_seconds = offset_seconds + int(offset_parts[1]) * 60  # noqa
-                                if date_offset[0] == '-':
-                                    seconds_since_epoch - offset_seconds
-                                elif date_offset[0] == '+':
-                                    seconds_since_epoch + offset_seconds
-                    except:
-                        pass
+        if exif:
+            # Below is substantially different to the routine in photo.py - why?
+            for date_key in self.exif_map['date_taken']:
+                if date_key in exif:
+                    # Example date strings we want to parse
+                    # 2015:01:19 12:45:11-08:00
+                    # 2013:09:30 07:06:05
+                    date = re.search('([0-9: ]+)([-+][0-9:]+)?', exif[date_key])
+                    if(date is not None):
+                        date_string = date.group(1)
+                        date_offset = date.group(2)
+                        try:
+                            exif_seconds_since_epoch = time.mktime(
+                                datetime.strptime(
+                                    date_string,
+                                    '%Y:%m:%d %H:%M:%S'
+                                ).timetuple()
+                            )
+                            if(exif_seconds_since_epoch < seconds_since_epoch):
+                                seconds_since_epoch = exif_seconds_since_epoch
+                                if date_offset is not None:
+                                    offset_parts = date_offset[1:].split(':')
+                                    offset_seconds = int(offset_parts[0]) * 3600
+                                    offset_seconds = offset_seconds + int(offset_parts[1]) * 60  # noqa
+                                    if date_offset[0] == '-':
+                                        seconds_since_epoch - offset_seconds
+                                    elif date_offset[0] == '+':
+                                        seconds_since_epoch + offset_seconds
+                        except:
+                            pass
+        if seconds_since_epoch == 0:
+            # Check is timestamp available in filename
+            try:
+                timestamp = os.path.basename(source).split('-')[0]
+                seconds_since_epoch = time.mktime(time.strptime(timestamp, constants.default_timestamp_definition))
+            except:
+                seconds_since_epoch = 0
+                pass
 
-        if(seconds_since_epoch == 0):
+        if seconds_since_epoch == 0:
+            seconds_since_epoch = min(os.path.getmtime(source), os.path.getctime(source))  # noqa
+
+        if not seconds_since_epoch:
             return None
 
         return time.gmtime(seconds_since_epoch)

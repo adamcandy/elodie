@@ -60,12 +60,24 @@ class Text(Base):
                 'date_taken' in self.metadata_line):
             return time.gmtime(self.metadata_line['date_taken'])
 
-        # If there's no date_taken in the metadata we return
-        #   from the filesystem
-        seconds_since_epoch = min(
-            os.path.getmtime(source),
-            os.path.getctime(source)
-        )
+        # If there's no date_taken in the metadata
+        # we first try the filename, then return
+        # from the filesystem
+        seconds_since_epoch = 0
+        # Check is timestamp available in filename
+        try:
+            timestamp = os.path.basename(source).split('-')[0]
+            seconds_since_epoch = time.mktime(time.strptime(timestamp, constants.default_timestamp_definition))
+        except:
+            seconds_since_epoch = 0
+            pass
+
+        if seconds_since_epoch == 0:
+            seconds_since_epoch = min(os.path.getmtime(source), os.path.getctime(source))
+
+        if not seconds_since_epoch:
+            return None
+
         return time.gmtime(seconds_since_epoch)
 
     def get_metadata(self):

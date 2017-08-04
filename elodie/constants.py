@@ -26,5 +26,9 @@ exiftool_config = path.join(script_directory, 'configs', 'ExifTool_config')
 #: Accepted language in responses from MapQuest
 accepted_language = 'en'
 
+# Default timestamp format
+default_timestamp_definition = '%Y-%m-%d_%H-%M-%S'
+
 # check python version, required in filesystem.py to trigger appropriate method
 python_version = version_info.major
+
