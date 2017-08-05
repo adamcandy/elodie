@@ -274,7 +274,7 @@ class FileSystem(object):
                     break
                 elif part in ('album'):
                     if metadata['album']:
-                        path.append(str(metadata['album'].encode('UTF-8')))
+                        path.append(metadata['album'])
                         break
                 elif part in ('datelocation'):
                     # TODO Requires generalisation
