@@ -266,7 +266,7 @@ class FileSystem(object):
                     break
                 elif part in ('album'):
                     if metadata['album']:
-                        path.append(str(metadata['album']))
+                        path.append(str(metadata['album'].encode('UTF-8')))
                         break
                 elif part.startswith('"') and part.endswith('"'):
                     path.append(part[1:-1])
@@ -350,7 +350,7 @@ class FileSystem(object):
 
         directory_name = self.get_folder_path(metadata)
 
-        dest_directory = os.path.join(destination, directory_name)
+        dest_directory = os.path.join(destination, directory_name.decode('UTF-8'))
         file_name = self.get_file_name(media)
         dest_path = os.path.join(dest_directory, file_name)
 
