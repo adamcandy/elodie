@@ -143,10 +143,10 @@ class FileSystem(object):
             timestamp = base_name.split('-', 1)[0]
             time.strptime(timestamp, constants.default_timestamp_definition)
             base_name_new = base_name.split('-', 1)[1]
+            if(len(base_name_new) != 0):
+                base_name = base_name_new
         except:
             pass
-        if(len(base_name_new) != 0):
-            base_name = base_name_new
 
         if(
             'title' in metadata and
