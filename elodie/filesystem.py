@@ -254,9 +254,14 @@ class FileSystem(object):
             for this_part in path_part:
                 part, mask = this_part
                 if part in ('date', 'day', 'month', 'year'):
-                    path.append(
-                        time.strftime(mask, metadata['date_taken'])
-                    )
+                    try:
+                        path.append(
+                            time.strftime(mask, metadata['date_taken'])
+                        )
+                    except:
+                        print(metadata['base_name'], path_parts, metadata['date_taken'])
+                        # Here when time is zero - to be fixed (was a fix there previously)
+                        raise
                     break
                 elif part in ('location', 'city', 'state', 'country'):
                     place_name = geolocation.place_name(
