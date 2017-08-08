@@ -90,6 +90,9 @@ class Photo(Media):
         if not seconds_since_epoch:
             return None
 
+        if seconds_since_epoch == 0:
+            return None
+
         return time.gmtime(seconds_since_epoch)
         #return seconds_since_epoch
 

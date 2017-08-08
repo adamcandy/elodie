@@ -160,8 +160,10 @@ class FileSystem(object):
         #print(metadata['date_taken'])
         #import sys
         #sys.exit()
-        
-        timestamp = time.strftime(constants.default_timestamp_definition, metadata['date_taken'])
+        if metadata['date_taken']: 
+            timestamp = time.strftime(constants.default_timestamp_definition, metadata['date_taken'])
+        else:
+            timestamp = 'Unknown'
 
         form = '%(timestamp)s-%(base_name)s.%(extension)s'
         file_name = form % {
@@ -254,14 +256,15 @@ class FileSystem(object):
             for this_part in path_part:
                 part, mask = this_part
                 if part in ('date', 'day', 'month', 'year'):
-                    try:
-                        path.append(
-                            time.strftime(mask, metadata['date_taken'])
-                        )
-                    except:
-                        print(metadata['base_name'], path_parts, metadata['date_taken'])
-                        # Here when time is zero - to be fixed (was a fix there previously)
-                        raise
+                    datestamp = ''
+                    if metadata['date_taken']:
+                        try:
+                            datestamp = time.strftime(mask, metadata['date_taken'])
+                        except:
+                            print(metadata['base_name'], path_parts, metadata['date_taken'])
+                            # Here when time is zero - to be fixed (was a fix there previously)
+                            raise
+                    path.append(datestamp)
                     break
                 elif part in ('location', 'city', 'state', 'country'):
                     place_name = geolocation.place_name(
@@ -283,8 +286,21 @@ class FileSystem(object):
                         break
                 elif part in ('datelocation'):
                     # TODO Requires generalisation
-                    mask = '%Y%m%d'
-                    datestamp = time.strftime(mask, metadata['date_taken'])
+                    #mask = '%Y%m%d'
+                    #
+                    # - need to adjust datelocation formatter:
+                    # change DD to 00
+                    # YYYY/YYYYMMDD album     (nb. YYYYMMDD within album name)
+                    # YYYY/YYYYMM00 location
+
+                    #
+                    mask = '%Y%m00'
+                    try:
+                        datestamp = time.strftime(mask, metadata['date_taken'])
+                    except:
+                        # Here when time is zero - to be fixed (was a fix there previously)
+                        datestamp = ''
+                        pass
                     mask = '%city, %state, %country'
                     place_name = geolocation.place_name(
                         metadata['latitude'],
