@@ -73,7 +73,7 @@ class Media(Base):
                 album = exiftool_attributes[album_key]
                 if isinstance(album, (int, long)):
                     album = str(album)
-                album = album.encode('UTF-8')    
+                album = album.encode('utf-8')
                 return album
 
         return None

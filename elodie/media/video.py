@@ -96,6 +96,8 @@ class Video(Media):
                                         seconds_since_epoch + offset_seconds
                         except:
                             pass
+        #print('  exif', seconds_since_epoch)
+
         if seconds_since_epoch == 0:
             # Check is timestamp available in filename
             try:
@@ -104,11 +106,19 @@ class Video(Media):
             except:
                 seconds_since_epoch = 0
                 pass
+        #print('  filename', seconds_since_epoch)
 
         if seconds_since_epoch == 0:
             seconds_since_epoch = min(os.path.getmtime(source), os.path.getctime(source))  # noqa
+        #print('  file', seconds_since_epoch)
 
         if not seconds_since_epoch:
             return None
+
+        #print('  year: ' + str(time.gmtime(seconds_since_epoch)[0]))
+        #if str(time.gmtime(seconds_since_epoch)[0]) == '2017':
+        #    print('!! 2017' + source)
+        #    #import sys
+        #    #sys.exit()
 
         return time.gmtime(seconds_since_epoch)

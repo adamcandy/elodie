@@ -292,7 +292,11 @@ class FileSystem(object):
                         location_parts,
                         place_name,
                     )
-                    path.append(datestamp + ' ' + parsed_folder_name)
+                    if len(datestamp) == 0 or len(parsed_folder_name) == 0:
+                        break
+                        #path.append('')
+                    else:
+                        path.append(datestamp + ' ' + parsed_folder_name)
                     break
                 elif part.startswith('"') and part.endswith('"'):
                     path.append(part[1:-1])
@@ -376,7 +380,8 @@ class FileSystem(object):
 
         directory_name = self.get_folder_path(metadata)
 
-        dest_directory = os.path.join(destination, directory_name.decode('UTF-8'))
+        #dest_directory = os.path.join(destination, directory_name)
+        dest_directory = os.path.join(destination, directory_name.decode('utf-8'))
         file_name = self.get_file_name(media)
         dest_path = os.path.join(dest_directory, file_name)
 
