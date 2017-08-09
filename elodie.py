@@ -46,8 +46,9 @@ def import_file(_file, destination, album_from_folder, move, trash, allow_duplic
             (_file, _file))
         return
     # Check if the source, _file, is a child folder within destination
-    elif destination.startswith(os.path.dirname(_file)):
-        print('{"source": "%s", "destination": "%s", "error_msg": "Source cannot be in destination"}' % (_file, destination))
+    elif os.path.dirname(os.path.realpath(os.path.expanduser(_file))).startswith(destination):
+        print('{"source": "%s", "destination": "%s", "error_msg": "Source cannot be in destination"}' % (os.path.realpath(os.path.expanduser(_file)), destination))
+        print(destination, '|', os.path.dirname(os.path.realpath(os.path.expanduser(_file))), '|', os.path.realpath(_file))
         return
 
 
