@@ -174,7 +174,7 @@ class FileSystem(object):
 
         return file_name.lower()
 
-    def get_folder_path_definition(self):
+    def get_folder_path_definition(self, metadata):
         """Returns a list of folder definitions.
 
         Each element in the list represents a folder.
@@ -191,10 +191,10 @@ class FileSystem(object):
 
         :returns: list
         """
-        # If we've done this already then return it immediately without
-        # incurring any extra work
-        if self.cached_folder_path_definition is not None:
-            return self.cached_folder_path_definition
+        #  # If we've done this already then return it immediately without
+        #  # incurring any extra work
+        #  if self.cached_folder_path_definition is not None:
+        #      return self.cached_folder_path_definition
 
         config = load_config()
 
@@ -211,6 +211,11 @@ class FileSystem(object):
                          '(\%[^/]+)',
                          config_directory['full_path']
                      )
+
+        if metadata:
+            if metadata['album']:
+                if metadata['album'].startswith('Photostream '):
+                    path_parts[0] = u'%"Photostreams"'
 
         if not path_parts or len(path_parts) == 0:
             return self.default_folder_path_definition
@@ -244,7 +249,7 @@ class FileSystem(object):
         :param metadata dict: Metadata dictionary.
         :returns: str
         """
-        path_parts = self.get_folder_path_definition()
+        path_parts = self.get_folder_path_definition(metadata)
         path = []
         for path_part in path_parts:
             # We support fallback values so that
@@ -401,8 +406,8 @@ class FileSystem(object):
 
         directory_name = self.get_folder_path(metadata)
 
-        #dest_directory = os.path.join(destination, directory_name)
-        dest_directory = os.path.join(destination, directory_name.decode('utf-8'))
+        dest_directory = os.path.join(destination, directory_name)
+        #dest_directory = os.path.join(destination, directory_name.decode('utf-8'))
         file_name = self.get_file_name(media)
         dest_path = os.path.join(dest_directory, file_name)
 
