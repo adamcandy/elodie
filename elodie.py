@@ -147,7 +147,7 @@ def _import(destination, source, file, album_from_folder, move, trash, allow_dup
 
 @click.command('generate-db')
 @click.option('--source', type=click.Path(file_okay=False),
-              required=True, help='Source of your photo library.')
+              required=False, help='Source of your photo library.')
 @click.option('--debug', default=False, is_flag=True,
               help='Override the value in constants.py with True.')
 def _generate_db(source, debug):
@@ -155,8 +155,22 @@ def _generate_db(source, debug):
     """
     constants.debug = debug
     result = Result()
-    source = os.path.abspath(os.path.expanduser(source))
     load_timestamp_definition()
+
+    config = load_config()
+
+    if source:
+        source = _decode(source)
+    elif('Library' in config):
+        config_library = config['Library']
+        if('root' in config_library):
+            source = config_library['root']
+
+    if not source:
+        log.error('Source not specified on command line or in config.ini')
+        sys.exit(1)
+
+    source = os.path.abspath(os.path.expanduser(source))
 
     if not os.path.isdir(source):
         log.error('Source is not a valid directory %s' % source)
