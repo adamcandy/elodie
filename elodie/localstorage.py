@@ -14,29 +14,53 @@ from shutil import copyfile
 from time import strftime
 
 from elodie import constants
+from elodie.config import load_config, load_timestamp_definition
 
 
 class Db(object):
 
     """A class for interacting with the JSON files created by Elodie."""
 
+    _database_filename = 'hash.json'
+
     def __init__(self):
+        # Determine location of hash database
+        #
+        self.hash_db_location_central = constants.hash_db
+        self.hash_db_location = None
+        self.is_local_hash = False
+        self.library_root = None
+
+        config = load_config()
+        if('Library' in config):
+            config_library = config['Library']
+            if (config_library['local_hash'].strip().lower() == 'yes'):
+                if('root' in config_library):
+                    self.library_root = os.path.abspath(os.path.expanduser(config_library['root']))
+                    self.is_local_hash = True
+
+        # In the future need to handle case where reverts to central for files with destinations outside library
+        if self.is_local_hash:
+            self.hash_db_location = os.path.join(self.library_root, '.elodie', self._database_filename)
+        else:
+            self.hash_db_location = self.hash_db_location_central
+               
         # verify that the application directory (~/.elodie) exists,
         #   else create it
-        if not os.path.exists(constants.application_directory):
-            os.makedirs(constants.application_directory)
+        if not os.path.exists(os.path.dirname(self.hash_db_location)):
+            os.makedirs(os.path.dirname(self.hash_db_location))
 
         # If the hash db doesn't exist we create it.
         # Otherwise we only open for reading
-        if not os.path.isfile(constants.hash_db):
-            with open(constants.hash_db, 'a'):
-                os.utime(constants.hash_db, None)
+        if not os.path.isfile(self.hash_db_location):
+            with open(self.hash_db_location, 'a'):
+                os.utime(self.hash_db_location, None)
 
         self.hash_db = {}
 
         # We know from above that this file exists so we open it
         #   for reading only.
-        with open(constants.hash_db, 'r') as f:
+        with open(self.hash_db_location, 'r') as f:
             try:
                 self.hash_db = json.load(f)
             except ValueError:
@@ -58,6 +82,12 @@ class Db(object):
             except ValueError:
                 pass
 
+    def translate_hash_key(self, key):
+        if self.is_local_hash:
+            return os.path.relpath(key, self.library_root)
+        else:
+            return key
+
     def add_hash(self, key, value, write=False):
         """Add a hash to the hash db.
 
@@ -65,6 +95,7 @@ class Db(object):
         :param str value:
         :param bool write: If true, write the hash db to disk.
         """
+        key = self.translate_hash_key(key)
         self.hash_db[key] = value
         if(write is True):
             self.update_hash_db()
@@ -95,10 +126,11 @@ class Db(object):
 
     def backup_hash_db(self):
         """Backs up the hash db."""
-        if os.path.isfile(constants.hash_db):
-            mask = strftime('%Y-%m-%d_%H-%M-%S')
-            backup_file_name = '%s-%s' % (constants.hash_db, mask)
-            copyfile(constants.hash_db, backup_file_name)
+        if os.path.isfile(self.hash_db_location):
+            load_timestamp_definition()
+            mask = strftime(constants.default_timestamp_definition)
+            backup_file_name = '%s-%s' % (self.hash_db_location, mask)
+            copyfile(self.hash_db_location, backup_file_name)
             return backup_file_name
 
     def check_hash(self, key):
@@ -107,6 +139,7 @@ class Db(object):
         :param str key:
         :returns: bool
         """
+        key = self.translate_hash_key(key)
         return key in self.hash_db
 
     def checksum(self, file_path, blocksize=65536):
@@ -135,6 +168,7 @@ class Db(object):
         :param str key:
         :returns: str or None
         """
+        key = self.translate_hash_key(key)
         if(self.check_hash(key) is True):
             return self.hash_db[key]
         return None
@@ -196,7 +230,7 @@ class Db(object):
 
     def update_hash_db(self):
         """Write the hash db to disk."""
-        with open(constants.hash_db, 'w') as f:
+        with open(self.hash_db_location, 'w') as f:
             json.dump(self.hash_db, f)
 
     def update_location_db(self):

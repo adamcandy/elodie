@@ -177,6 +177,10 @@ def _generate_db(source, debug):
         sys.exit(1)
         
     db = Db()
+    if db.is_local_hash:
+        log.info('Generating local hash database in %s' % db.hash_db_location)
+    else:
+        log.info('Generating central hash database in %s' % db.hash_db_location)
     db.backup_hash_db()
     db.reset_hash_db()
 
@@ -197,6 +201,10 @@ def _verify(debug):
     result = Result()
     load_timestamp_definition()
     db = Db()
+    if db.is_local_hash:
+        log.info('Verifying to local hash database in %s' % db.hash_db_location)
+    else:
+        log.info('Verifying to central hash database in %s' % db.hash_db_location)
     for checksum, file_path in db.all():
         if not os.path.isfile(file_path):
             result.append((file_path, False))
