@@ -82,11 +82,17 @@ class Db(object):
             except ValueError:
                 pass
 
-    def translate_hash_key(self, key):
+    def relative_hash(self, value):
         if self.is_local_hash:
-            return os.path.relpath(key, self.library_root)
+            return os.path.relpath(value, self.library_root)
         else:
-            return key
+            return value
+
+    def derelative_hash(self, value):
+        if self.is_local_hash:
+            return os.path.join(self.library_root, value)
+        else:
+            return value
 
     def add_hash(self, key, value, write=False):
         """Add a hash to the hash db.
@@ -95,7 +101,7 @@ class Db(object):
         :param str value:
         :param bool write: If true, write the hash db to disk.
         """
-        key = self.translate_hash_key(key)
+        value = self.relative_hash(value)
         self.hash_db[key] = value
         if(write is True):
             self.update_hash_db()
@@ -139,7 +145,6 @@ class Db(object):
         :param str key:
         :returns: bool
         """
-        key = self.translate_hash_key(key)
         return key in self.hash_db
 
     def checksum(self, file_path, blocksize=65536):
@@ -168,9 +173,10 @@ class Db(object):
         :param str key:
         :returns: str or None
         """
-        key = self.translate_hash_key(key)
         if(self.check_hash(key) is True):
-            return self.hash_db[key]
+            value = self.hash_db[key]
+            value = self.derelative_hash(value)
+            return value
         return None
 
     def get_location_name(self, latitude, longitude, threshold_m):
