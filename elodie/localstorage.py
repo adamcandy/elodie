@@ -229,7 +229,7 @@ class Db(object):
         :returns tuple(string)
         """
         for checksum, path in self.hash_db.items():
-            yield (checksum, path)
+            yield (checksum, self.derelative_hash(path))
 
     def reset_hash_db(self):
         self.hash_db = {}
