@@ -397,11 +397,15 @@ class FileSystem(object):
         if('allowDuplicate' in kwargs):
             allow_duplicate = kwargs['allowDuplicate']
 
+        lowercase_original_filename = False
+        if('lowercase_original_filename' in kwargs):
+            lowercase_original_filename = kwargs['lowercase_original_filename']
+
         if(not media.is_valid()):
             print('%s is not a valid media file. Skipping...' % _file)
             return
 
-        media.set_original_name()
+        media.set_original_name(lowercase=lowercase_original_filename)
         metadata = media.get_metadata()
 
         directory_name = self.get_folder_path(metadata)

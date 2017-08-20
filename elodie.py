@@ -33,7 +33,7 @@ from elodie.config import load_config, load_timestamp_definition
 FILESYSTEM = FileSystem()
 
 
-def import_file(_file, destination, album_from_folder, move, trash, allow_duplicates):
+def import_file(_file, destination, album_from_folder, move, trash, allow_duplicates, lowercase_original_filename):
 
     _file = _decode(_file)
     destination = _decode(destination)
@@ -62,7 +62,7 @@ def import_file(_file, destination, album_from_folder, move, trash, allow_duplic
         media.set_album_from_folder()
 
     dest_path = FILESYSTEM.process_file(_file, destination,
-        media, allowDuplicate=allow_duplicates, move=move)
+        media, allowDuplicate=allow_duplicates, move=move, lowercase_original_filename=lowercase_original_filename)
     if dest_path:
         print('%s -> %s' % (_file, dest_path))
     if trash:
@@ -94,6 +94,7 @@ def _import(destination, source, file, album_from_folder, move, trash, allow_dup
     """
     constants.debug = debug
     has_errors = False
+    lowercase_original_filename = False
     result = Result()
     load_timestamp_definition()
 
@@ -119,6 +120,11 @@ def _import(destination, source, file, album_from_folder, move, trash, allow_dup
             # so booleans are interpreted
             move = move or (config_library['move_on_import'].strip().lower() == 'yes')
 
+    if('Filename' in config):
+        config_filename = config['Filename']
+        if('lowercase_original_filename' in config_library):
+            lowercase_original_filename = (config_library['lowercase_original_filename'].strip().lower() == 'yes')
+
     files = set()
     paths = set(paths)
     if source:
@@ -135,7 +141,7 @@ def _import(destination, source, file, album_from_folder, move, trash, allow_dup
 
     for current_file in files:
         dest_path = import_file(current_file, destination, album_from_folder,
-                    move, trash, allow_duplicates)
+                    move, trash, allow_duplicates, lowercase_original_filename)
         result.append((current_file, dest_path))
         has_errors = has_errors is True or not dest_path
 
