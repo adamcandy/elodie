@@ -65,7 +65,8 @@ def import_file(_file, destination, album_from_folder, move, trash, allow_duplic
         media, allowDuplicate=allow_duplicates, move=move, lowercase_original_filename=lowercase_original_filename)
     if dest_path:
         try:
-            print('%s -> %s' % (_file, dest_path))
+            #print('%s -> %s' % (_file, dest_path))
+            print('%s -> %s' % (_file.encode("utf-8"), dest_path.encode("utf-8")))
         except:
             print('File name encoding error')
             print(_file.encode("utf-8"))
