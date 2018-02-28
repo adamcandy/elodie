@@ -43,4 +43,4 @@ def error_json(payload):
 
 def _print(string):
     if(constants.debug is True):
-        print(string)
+        print(string.encode('utf-8'))
