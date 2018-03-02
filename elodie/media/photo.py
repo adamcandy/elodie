@@ -30,8 +30,8 @@ class Photo(Media):
     __name__ = 'Photo'
 
     #: Valid extensions for photo files.
-    #extensions = ('arw', 'cr2', 'dng', 'gif', 'jpeg', 'jpg', 'nef', 'rw2', 'png', 'tiff')
-    extensions = ('arw', 'cr2', 'dng', 'gif', 'jpeg', 'jpg', 'nef', 'rw2', 'png', 'tiff', 'heic')
+    extensions = ('arw', 'cr2', 'dng', 'gif', 'jpeg', 'jpg', 'nef', 'rw2', 'png', 'tiff')
+    #extensions = ('arw', 'cr2', 'dng', 'gif', 'jpeg', 'jpg', 'nef', 'rw2', 'png', 'tiff', 'heic')
 
     def __init__(self, source=None):
         super(Photo, self).__init__(source)
@@ -107,9 +107,9 @@ class Photo(Media):
         """
         source = self.source
 
-        # asc Hack to allow .heic files to bypass imghdr check
-        if os.path.splitext(source)[1][1:].lower() in ['heic']:
-            return True
+        # # asc Hack to allow .heic files to bypass imghdr check
+        # if os.path.splitext(source)[1][1:].lower() in ['heic']:
+        #     return True
 
         # gh-4 This checks if the source file is an image.
         # It doesn't validate against the list of supported types.
