@@ -174,7 +174,7 @@ class FileSystem(object):
 
         return file_name.lower()
 
-    def get_folder_path_definition(self, metadata):
+    def get_folder_path_definition(self, metadata=None):
         """Returns a list of folder definitions.
 
         Each element in the list represents a folder.
