@@ -322,12 +322,6 @@ class FileSystem(object):
                          '(\%[^/]+)',
                          config_directory['full_path']
                      )
-        
-        # asc Naughty specific hack for Apple Photostream imports
-        if metadata:
-            if metadata['album']:
-                if metadata['album'].startswith('Photostream '):
-                    path_parts[0] = u'%"Photostreams"'
 
         if not path_parts or len(path_parts) == 0:
             return self.default_folder_path_definition
@@ -357,6 +351,13 @@ class FileSystem(object):
         """
         if path_parts is None:
             path_parts = self.get_folder_path_definition()
+
+        # asc Naughty specific hack for Apple Photostream imports
+        if metadata:
+            if metadata['album']:
+                if metadata['album'].startswith('Photostream '):
+                    path_parts[0] = u'%"Photostreams"'
+
         path = []
         for path_part in path_parts:
             # We support fallback values so that
