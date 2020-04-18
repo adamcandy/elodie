@@ -36,7 +36,7 @@ from elodie import constants
 
 FILESYSTEM = FileSystem()
 
-def import_file(_file, destination, album_from_folder, move, trash, allow_duplicates):
+def import_file(_file, destination, album_from_folder, move, hospital, trash, allow_duplicates):
     
     _file = _decode(_file)
     destination = _decode(destination)
@@ -68,6 +68,10 @@ def import_file(_file, destination, album_from_folder, move, trash, allow_duplic
         media, allowDuplicate=allow_duplicates, move=move)
     if dest_path:
         log.all('%s -> %s' % (_file, dest_path))
+    elif hospital:
+        dest_path = FILESYSTEM.hospitalize(_file, hospital)
+        log.all('%s -> Hospital: %s' % (_file, dest_path))
+
     if trash:
         send2trash(_file)
 
@@ -127,10 +131,15 @@ def _import(destination, source, file, album_from_folder, move, trash, allow_dup
     destination = _decode(destination)
     destination = os.path.abspath(os.path.expanduser(destination))
 
+    hospital = None
     if('Library' in config):
         config_library = config['Library']
         if('move_on_import' in config_library):
             move = move or bool(config_library['move_on_import'])
+            if('hospital' in config_library):
+                hospital = config_library['hospital']
+                hospital = _decode(hospital)
+                hospital = os.path.abspath(os.path.expanduser(hospital))
 
     files = set()
     paths = set(paths)
@@ -158,7 +167,7 @@ def _import(destination, source, file, album_from_folder, move, trash, allow_dup
 
     for current_file in files:
         dest_path = import_file(current_file, destination, album_from_folder,
-                    move, trash, allow_duplicates)
+                    move, hospital, trash, allow_duplicates)
         result.append((current_file, dest_path))
         has_errors = has_errors is True or not dest_path
 

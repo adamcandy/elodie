@@ -511,6 +511,35 @@ class FileSystem(object):
                 ))
         return checksum
 
+    def hospitalize(self, _file, hospital):
+        file_name = os.path.basename(_file)
+        base, ext = os.path.splitext(file_name)
+        dest_path = os.path.join(hospital, file_name)        
+
+        # Check we are not acting on files already within the hospital
+        # If source and destination are identical then we should not write the file.
+        if(_file == dest_path):
+            print('Final source and destination hospital path should not be identical')
+            return
+
+        self.create_directory(hospital)
+
+        # Ensure our destination filename in hospital is unique
+        count = None
+        while (os.path.exists(dest_path)):
+            if not count:
+                count = 1
+            else:
+                count += 1
+            dest_path = os.path.join(hospital, '%s_%d%s' % (base, count, ext))        
+
+        stat = os.stat(_file)
+        # Move the processed file into the destination directory
+        shutil.move(_file, dest_path)
+        os.utime(dest_path, (stat.st_atime, stat.st_mtime))
+
+        return dest_path
+
     def process_file(self, _file, destination, media, **kwargs):
         move = False
         if('move' in kwargs):
