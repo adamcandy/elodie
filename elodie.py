@@ -36,7 +36,7 @@ from elodie import constants
 
 FILESYSTEM = FileSystem()
 
-def import_file(_file, destination, album_from_folder, trash, allow_duplicates):
+def import_file(_file, destination, album_from_folder, move, trash, allow_duplicates):
     
     _file = _decode(_file)
     destination = _decode(destination)
@@ -65,7 +65,7 @@ def import_file(_file, destination, album_from_folder, trash, allow_duplicates):
         media.set_album_from_folder()
 
     dest_path = FILESYSTEM.process_file(_file, destination,
-        media, allowDuplicate=allow_duplicates, move=False)
+        media, allowDuplicate=allow_duplicates, move=move)
     if dest_path:
         log.all('%s -> %s' % (_file, dest_path))
     if trash:
@@ -86,13 +86,15 @@ def _batch(debug):
 
 @click.command('import')
 @click.option('--destination', type=click.Path(file_okay=False),
-              required=True, help='Copy imported files into this directory.')
+              required=False, help='Copy imported files into this directory.')
 @click.option('--source', type=click.Path(file_okay=False),
               help='Import files from this directory, if specified.')
 @click.option('--file', type=click.Path(dir_okay=False),
               help='Import this file, if specified.')
 @click.option('--album-from-folder', default=False, is_flag=True,
               help="Use images' folders as their album names.")
+@click.option('--move', default=False, is_flag=True,
+              help="Move images rather than copy.")
 @click.option('--trash', default=False, is_flag=True,
               help='After copying files, move the old files to the trash.')
 @click.option('--allow-duplicates', default=False, is_flag=True,
@@ -102,15 +104,33 @@ def _batch(debug):
 @click.option('--exclude-regex', default=set(), multiple=True,
               help='Regular expression for directories or files to exclude.')
 @click.argument('paths', nargs=-1, type=click.Path())
-def _import(destination, source, file, album_from_folder, trash, allow_duplicates, debug, exclude_regex, paths):
+def _import(destination, source, file, album_from_folder, move, trash, allow_duplicates, debug, exclude_regex, paths):
     """Import files or directories by reading their EXIF and organizing them accordingly.
     """
     constants.debug = debug
     has_errors = False
     result = Result()
 
+    config = load_config()
+
+    if destination:
+        destination = _decode(destination)
+    elif('Library' in config):
+        config_library = config['Library']
+        if('root' in config_library):
+            destination = config_library['root']
+
+    if not destination:
+        log.error('Destination not specified on command line or in config.ini')
+        sys.exit(1)
+
     destination = _decode(destination)
     destination = os.path.abspath(os.path.expanduser(destination))
+
+    if('Library' in config):
+        config_library = config['Library']
+        if('move_on_import' in config_library):
+            move = move or bool(config_library['move_on_import'])
 
     files = set()
     paths = set(paths)
@@ -138,7 +158,7 @@ def _import(destination, source, file, album_from_folder, trash, allow_duplicate
 
     for current_file in files:
         dest_path = import_file(current_file, destination, album_from_folder,
-                    trash, allow_duplicates)
+                    move, trash, allow_duplicates)
         result.append((current_file, dest_path))
         has_errors = has_errors is True or not dest_path
 
@@ -158,6 +178,20 @@ def _generate_db(source, debug):
     """
     constants.debug = debug
     result = Result()
+
+    config = load_config()
+
+    if source:
+        source = _decode(source)
+    elif('Library' in config):
+        config_library = config['Library']
+        if('root' in config_library):
+            source = config_library['root']
+
+    if not source:
+        log.error('Source not specified on command line or in config.ini')
+        sys.exit(1)
+
     source = os.path.abspath(os.path.expanduser(source))
 
     if not os.path.isdir(source):
@@ -165,6 +199,10 @@ def _generate_db(source, debug):
         sys.exit(1)
         
     db = Db()
+    if db.is_local_hash:
+        log.info('Generating local hash database in %s' % db.hash_db_location)
+    else:
+        log.info('Generating central hash database in %s' % db.hash_db_location)
     db.backup_hash_db()
     db.reset_hash_db()
 
@@ -184,6 +222,10 @@ def _verify(debug):
     constants.debug = debug
     result = Result()
     db = Db()
+    if db.is_local_hash:
+        log.info('Verifying to local hash database in %s' % db.hash_db_location)
+    else:
+        log.info('Verifying to central hash database in %s' % db.hash_db_location)
     for checksum, file_path in db.all():
         if not os.path.isfile(file_path):
             result.append((file_path, False))
