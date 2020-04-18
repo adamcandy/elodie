@@ -322,6 +322,12 @@ class FileSystem(object):
                          '(\%[^/]+)',
                          config_directory['full_path']
                      )
+        
+        # asc Naughty specific hack for Apple Photostream imports
+        if metadata:
+            if metadata['album']:
+                if metadata['album'].startswith('Photostream '):
+                    path_parts[0] = u'%"Photostreams"'
 
         if not path_parts or len(path_parts) == 0:
             return self.default_folder_path_definition
