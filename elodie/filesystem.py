@@ -523,6 +523,11 @@ class FileSystem(object):
         base, ext = os.path.splitext(file_name)
         dest_path = os.path.join(hospital, file_name)        
 
+        # Remove any temp files left over by EXIFtool
+        exif_original_file = _file + '_original'
+        if(os.path.exists(exif_original_file)):
+            os.remove(exif_original_file)
+
         # Check we are not acting on files already within the hospital
         # If source and destination are identical then we should not write the file.
         if(_file == dest_path):
@@ -562,6 +567,18 @@ class FileSystem(object):
         if(not media.is_valid()):
             print('%s is not a valid media file. Skipping...' % _file)
             return
+
+        album_from_dest_folder = False
+        if('album_from_dest_folder' in kwargs):
+            album_from_dest_folder = kwargs['album_from_dest_folder']
+        if album_from_dest_folder:
+            directory_name = self.get_folder_path(metadata)
+            # If this file has an album already set we do not overwrite EXIF
+            if (isinstance(metadata, dict) and metadata['album'] is None):
+                folder = os.path.basename(directory_name)
+                # If folder is empty we skip
+                if(len(folder) > 0):
+                    media.set_album(folder)
 
         checksum = self.process_checksum(_file, allow_duplicate)
         if(checksum is None):

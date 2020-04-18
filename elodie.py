@@ -36,7 +36,7 @@ from elodie import constants
 
 FILESYSTEM = FileSystem()
 
-def import_file(_file, destination, album_from_folder, move, hospital, trash, allow_duplicates):
+def import_file(_file, destination, album_from_folder, move, hospital, trash, allow_duplicates, album_from_dest_folder):
     
     _file = _decode(_file)
     destination = _decode(destination)
@@ -65,7 +65,7 @@ def import_file(_file, destination, album_from_folder, move, hospital, trash, al
         media.set_album_from_folder()
 
     dest_path = FILESYSTEM.process_file(_file, destination,
-        media, allowDuplicate=allow_duplicates, move=move)
+        media, allowDuplicate=allow_duplicates, move=move, album_from_dest_folder=album_from_dest_folder)
     if dest_path:
         log.all('%s -> %s' % (_file, dest_path))
     elif hospital:
@@ -97,6 +97,8 @@ def _batch(debug):
               help='Import this file, if specified.')
 @click.option('--album-from-folder', default=False, is_flag=True,
               help="Use images' folders as their album names.")
+@click.option('--album-from-dest-folder', default=False, is_flag=True,
+              help="Sets album to destination folder basename.")
 @click.option('--move', default=False, is_flag=True,
               help="Move images rather than copy.")
 @click.option('--trash', default=False, is_flag=True,
@@ -108,7 +110,7 @@ def _batch(debug):
 @click.option('--exclude-regex', default=set(), multiple=True,
               help='Regular expression for directories or files to exclude.')
 @click.argument('paths', nargs=-1, type=click.Path())
-def _import(destination, source, file, album_from_folder, move, trash, allow_duplicates, debug, exclude_regex, paths):
+def _import(destination, source, file, album_from_folder, album_from_dest_folder, move, trash, allow_duplicates, debug, exclude_regex, paths):
     """Import files or directories by reading their EXIF and organizing them accordingly.
     """
     constants.debug = debug
@@ -141,6 +143,11 @@ def _import(destination, source, file, album_from_folder, move, trash, allow_dup
                 hospital = _decode(hospital)
                 hospital = os.path.abspath(os.path.expanduser(hospital))
 
+    if('Metadata' in config):
+        metadata_library = config['Metadata']
+        if('album_from_dest_folder' in metadata_library):
+            album_from_dest_folder = album_from_dest_folder or bool(metadata_library['album_from_dest_folder'])
+
     files = set()
     paths = set(paths)
     if source:
@@ -167,7 +174,7 @@ def _import(destination, source, file, album_from_folder, move, trash, allow_dup
 
     for current_file in files:
         dest_path = import_file(current_file, destination, album_from_folder,
-                    move, hospital, trash, allow_duplicates)
+                    move, hospital, trash, allow_duplicates, album_from_dest_folder)
         result.append((current_file, dest_path))
         has_errors = has_errors is True or not dest_path
 
