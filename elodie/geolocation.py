@@ -162,13 +162,14 @@ def place_name(lat, lon):
     geolocation_info = lookup(lat=lat, lon=lon)
     if(geolocation_info is not None and 'address' in geolocation_info):
         address = geolocation_info['address']
+        default = []
         for loc in ['city', 'state', 'country']:
             if(loc in address):
                 lookup_place_name[loc] = address[loc]
-                # In many cases the desired key is not available so we
-                #  set the most specific as the default.
-                if('default' not in lookup_place_name):
-                    lookup_place_name['default'] = address[loc]
+                if (len(default) == 0) or (default[-1] != address[loc]):
+                    default.append(address[loc])
+        if('default' not in lookup_place_name):
+            lookup_place_name['default'] = ', '.join(default)
 
     if(lookup_place_name):
         db.add_location(lat, lon, lookup_place_name)
