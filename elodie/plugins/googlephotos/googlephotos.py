@@ -75,6 +75,10 @@ class GooglePhotos(PluginBase):
         count = 0
         for key in queue:
             this_status = self.upload(key)
+            try:
+                self.display('Working on {}'.format(key.encode()))
+            except:
+                raise
             if(this_status):
                 # Remove from queue if successful then increment count
                 self.db.delete(key)
