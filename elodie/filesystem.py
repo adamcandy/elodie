@@ -540,10 +540,8 @@ class FileSystem(object):
                 count += 1
             dest_path = os.path.join(trashbin, '%s_%d%s' % (base, count, ext))        
 
-        stat = os.stat(_file)
         # Move the processed file into the destination directory
         shutil.move(_file, dest_path)
-        os.utime(dest_path, (stat.st_atime, stat.st_mtime))
 
     def hospitalize(self, _file, hospital, **kwargs):
         move = False
@@ -604,7 +602,11 @@ class FileSystem(object):
             # Set the utime based on what the original file contained 
             #  before we made any changes.
             # Then set the utime on the destination file based on metadata.
-            os.utime(_file, (stat_info_original.st_atime, stat_info_original.st_mtime))
+            try:
+                os.utime(_file, (stat_info_original.st_atime, stat_info_original.st_mtime))
+            except:
+                log.warn('Unable to set atime and mtime for %s' % _file)
+                pass
             self.set_utime_from_metadata(metadata, dest_path)
 
         return dest_path
@@ -698,7 +700,11 @@ class FileSystem(object):
             # Set the utime based on what the original file contained 
             #  before we made any changes.
             # Then set the utime on the destination file based on metadata.
-            os.utime(_file, (stat_info_original.st_atime, stat_info_original.st_mtime))
+            try:
+                os.utime(_file, (stat_info_original.st_atime, stat_info_original.st_mtime))
+            except:
+                log.warn('Unable to set atime and mtime for %s' % _file)
+                pass
             self.set_utime_from_metadata(metadata, dest_path)
 
         db = Db()
