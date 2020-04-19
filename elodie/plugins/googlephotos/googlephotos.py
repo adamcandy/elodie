@@ -75,22 +75,14 @@ class GooglePhotos(PluginBase):
         count = 0
         for key in queue:
             this_status = self.upload(key)
-            try:
-                self.display('Working on {}'.format(key.encode()))
-            except:
-                print('ERROR with encoding')
-                print(key.encode('utf-8'))
-                print(key.encode())
-                print(key)
-                raise
             if(this_status):
                 # Remove from queue if successful then increment count
                 self.db.delete(key)
                 count = count + 1
-                self.display('{} uploaded successfully.'.format(key))
+                self.display('{} uploaded successfully.'.format(key.encode('utf-8')))
             else:
                 status = False
-                self.display('{} failed to upload.'.format(key))
+                self.display('{} failed to upload.'.format(key.encode('utf-8')))
         return (status, count)
 
     def before(self, file_path, destination_folder):
