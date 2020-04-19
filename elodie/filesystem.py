@@ -607,7 +607,6 @@ class FileSystem(object):
             except:
                 log.warn('Unable to set atime and mtime for %s' % _file)
                 pass
-            self.set_utime_from_metadata(metadata, dest_path)
 
         return dest_path
 
