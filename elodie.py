@@ -36,7 +36,7 @@ from elodie import constants
 
 FILESYSTEM = FileSystem()
 
-def import_file(_file, destination, album_from_folder, move, hospital, trash, allow_duplicates, album_from_dest_folder):
+def import_file(_file, destination, album_from_folder, move, hospital, trash, trashbin, allow_duplicates, album_from_dest_folder):
     
     _file = _decode(_file)
     destination = _decode(destination)
@@ -72,8 +72,13 @@ def import_file(_file, destination, album_from_folder, move, hospital, trash, al
         dest_path = FILESYSTEM.hospitalize(_file, hospital)
         log.all('%s -> Hospital: %s' % (_file, dest_path))
 
-    if trash:
-        send2trash(_file)
+    # If not moved, 
+    if (not move) and dest_path and trash:
+        if trashbin:
+            FILESYSTEM.trash(_file, trashbin)
+            log.info('  trashed: %s' % (_file))
+        else:
+            send2trash(_file)
 
     return dest_path or None
 
@@ -134,14 +139,19 @@ def _import(destination, source, file, album_from_folder, album_from_dest_folder
     destination = os.path.abspath(os.path.expanduser(destination))
 
     hospital = None
+    trashbin = None
     if('Library' in config):
         config_library = config['Library']
         if('move_on_import' in config_library):
             move = move or bool(config_library['move_on_import'])
-            if('hospital' in config_library):
-                hospital = config_library['hospital']
-                hospital = _decode(hospital)
-                hospital = os.path.abspath(os.path.expanduser(hospital))
+        if('hospital' in config_library):
+            hospital = config_library['hospital']
+            hospital = _decode(hospital)
+            hospital = os.path.abspath(os.path.expanduser(hospital))
+        if('trash' in config_library):
+            trashbin = config_library['trash']
+            trashbin = _decode(trashbin)
+            trashbin = os.path.abspath(os.path.expanduser(trashbin))
 
     if('Metadata' in config):
         metadata_library = config['Metadata']
@@ -174,7 +184,7 @@ def _import(destination, source, file, album_from_folder, album_from_dest_folder
 
     for current_file in files:
         dest_path = import_file(current_file, destination, album_from_folder,
-                    move, hospital, trash, allow_duplicates, album_from_dest_folder)
+                    move, hospital, trash, trashbin, allow_duplicates, album_from_dest_folder)
         result.append((current_file, dest_path))
         has_errors = has_errors is True or not dest_path
 

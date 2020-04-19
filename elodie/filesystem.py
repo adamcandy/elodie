@@ -518,15 +518,41 @@ class FileSystem(object):
                 ))
         return checksum
 
-    def hospitalize(self, _file, hospital):
+    def trash(self, _file, trashbin, **kwargs):
+        file_name = os.path.basename(_file)
+        base, ext = os.path.splitext(file_name)
+        dest_path = os.path.join(trashbin, file_name)        
+
+        # Check we are not acting on files already within the trash
+        # If source and destination are identical then we should not write the file.
+        if(_file == dest_path):
+            print('Final source and destination trash path should not be identical')
+            return
+
+        self.create_directory(trashbin)
+
+        # Ensure our destination filename in trash is unique
+        count = None
+        while (os.path.exists(dest_path)):
+            if not count:
+                count = 1
+            else:
+                count += 1
+            dest_path = os.path.join(trashbin, '%s_%d%s' % (base, count, ext))        
+
+        stat = os.stat(_file)
+        # Move the processed file into the destination directory
+        shutil.move(_file, dest_path)
+        os.utime(dest_path, (stat.st_atime, stat.st_mtime))
+
+    def hospitalize(self, _file, hospital, **kwargs):
+        move = False
+        if('move' in kwargs):
+            move = kwargs['move']
+
         file_name = os.path.basename(_file)
         base, ext = os.path.splitext(file_name)
         dest_path = os.path.join(hospital, file_name)        
-
-        # Remove any temp files left over by EXIFtool
-        exif_original_file = _file + '_original'
-        if(os.path.exists(exif_original_file)):
-            os.remove(exif_original_file)
 
         # Check we are not acting on files already within the hospital
         # If source and destination are identical then we should not write the file.
@@ -535,6 +561,17 @@ class FileSystem(object):
             return
 
         self.create_directory(hospital)
+
+        # exiftool renames the original file by appending '_original' to the
+        # file name. A new file is written with new tags with the initial file
+        # name. See exiftool man page for more details.
+        exif_original_file = _file + '_original'
+
+        # Check if the source file was processed by exiftool and an _original
+        # file was created.
+        exif_original_file_exists = False
+        if(os.path.exists(exif_original_file)):
+            exif_original_file_exists = True
 
         # Ensure our destination filename in hospital is unique
         count = None
@@ -545,10 +582,30 @@ class FileSystem(object):
                 count += 1
             dest_path = os.path.join(hospital, '%s_%d%s' % (base, count, ext))        
 
-        stat = os.stat(_file)
-        # Move the processed file into the destination directory
-        shutil.move(_file, dest_path)
-        os.utime(dest_path, (stat.st_atime, stat.st_mtime))
+        if(move is True):
+            stat = os.stat(_file)
+            # Move the processed file into the destination directory
+            shutil.move(_file, dest_path)
+
+            if(exif_original_file_exists is True):
+                # We can remove it as we don't need the initial file.
+                os.remove(exif_original_file)
+            os.utime(dest_path, (stat.st_atime, stat.st_mtime))
+        else:
+            if(exif_original_file_exists is True):
+                # Move the newly processed file with any updated tags to the
+                # destination directory
+                shutil.move(_file, dest_path)
+                # Move the exif _original back to the initial source file
+                shutil.move(exif_original_file, _file)
+            else:
+                compatability._copyfile(_file, dest_path)
+
+            # Set the utime based on what the original file contained 
+            #  before we made any changes.
+            # Then set the utime on the destination file based on metadata.
+            os.utime(_file, (stat_info_original.st_atime, stat_info_original.st_mtime))
+            self.set_utime_from_metadata(metadata, dest_path)
 
         return dest_path
 
