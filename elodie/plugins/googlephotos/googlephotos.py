@@ -78,6 +78,8 @@ class GooglePhotos(PluginBase):
             try:
                 self.display('Working on {}'.format(key.encode()))
             except:
+                print('ERROR with encoding')
+                print(key)
                 raise
             if(this_status):
                 # Remove from queue if successful then increment count
