@@ -75,8 +75,8 @@ def import_file(_file, destination, album_from_folder, move, hospital, trash, tr
     # If not moved, 
     if (not move) and dest_path and trash:
         if trashbin:
-            FILESYSTEM.trash(_file, trashbin)
-            log.info('  trashed: %s to %s' % (_file, dest_path))
+            trash_path = FILESYSTEM.trash(_file, trashbin)
+            log.info('  trashed: %s to %s' % (_file, trash_path))
         else:
             send2trash(_file)
 

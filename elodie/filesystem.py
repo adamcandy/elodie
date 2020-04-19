@@ -543,6 +543,8 @@ class FileSystem(object):
         # Move the processed file into the destination directory
         shutil.move(_file, dest_path)
 
+        return dest_path
+
     def hospitalize(self, _file, hospital, **kwargs):
         move = False
         if('move' in kwargs):
