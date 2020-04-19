@@ -79,6 +79,8 @@ class GooglePhotos(PluginBase):
                 self.display('Working on {}'.format(key.encode()))
             except:
                 print('ERROR with encoding')
+                print(key.encode('utf-8'))
+                print(key.encode())
                 print(key)
                 raise
             if(this_status):
