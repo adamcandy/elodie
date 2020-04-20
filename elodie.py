@@ -196,7 +196,7 @@ def _import(destination, source, file, album_from_folder, album_from_dest_folder
 
 @click.command('generate-db')
 @click.option('--source', type=click.Path(file_okay=False),
-              required=True, help='Source of your photo library.')
+              required=False, help='Source of your photo library.')
 @click.option('--debug', default=False, is_flag=True,
               help='Override the value in constants.py with True.')
 def _generate_db(source, debug):
