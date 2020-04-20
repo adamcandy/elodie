@@ -8,6 +8,7 @@ from datetime import datetime
 
 import click
 from send2trash import send2trash
+from distutils.util import strtobool
 
 # Verify that external dependencies are present first, so the user gets a
 # more user-friendly error instead of an ImportError traceback.

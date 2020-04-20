@@ -12,6 +12,7 @@ import sys
 from math import radians, cos, sqrt
 from shutil import copyfile
 from time import strftime
+from distutils.util import strtobool
 
 from elodie import constants
 from elodie.config import load_config
