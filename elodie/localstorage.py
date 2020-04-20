@@ -137,7 +137,7 @@ class Db(object):
             if('File' in config):
                 config_file = config['File']
                 if 'date' in config_file:
-                    mask = strftime(config_library['date'])
+                    mask = strftime(config_file['date'])
             backup_file_name = '%s-%s' % (self.hash_db_location, mask)
             copyfile(self.hash_db_location, backup_file_name)
             return backup_file_name
