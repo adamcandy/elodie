@@ -149,7 +149,9 @@ def _import(destination, source, file, album_from_folder, album_from_dest_folder
             hospital = _decode(hospital)
             hospital = os.path.abspath(os.path.expanduser(hospital))
         if('trash' in config_library):
-            trashbin = config_library['trash']
+            trash = trash or bool(config_library['trash'])
+        if('trashbin' in config_library):
+            trashbin = config_library['trashbin']
             trashbin = _decode(trashbin)
             trashbin = os.path.abspath(os.path.expanduser(trashbin))
 
