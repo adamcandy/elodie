@@ -232,10 +232,20 @@ def _generate_db(source, debug):
     db.backup_hash_db()
     db.reset_hash_db()
 
+    total = sum(1 for x in FILESYSTEM.get_all_files(source)) 
+    log.info('There are a total of %s files found' % total)
+    count = 0
+    progress_logged = 0
     for current_file in FILESYSTEM.get_all_files(source):
+        count += 1
         result.append((current_file, True))
         db.add_hash(db.checksum(current_file), current_file)
-        log.progress()
+        progress = int( 100 * count / total )
+        if ( progress > progress_logged):
+            log.progress('. (%d%%, %d files) ' % (progress, count))
+            progress_logged = progress
+        else:
+            log.progress()
     
     db.update_hash_db()
     log.progress('', True)

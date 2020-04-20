@@ -207,7 +207,7 @@ class FileSystem(object):
             if this_value is None:
                 name = re.sub(
                     #'[^a-z_]+%{}'.format(part),
-                    '[^a-zA-Z0-9_]+%{}'.format(part),
+                    '[^a-zA-Z0-9_()]+%{}'.format(part),
                     '',
                     name,
                 )
