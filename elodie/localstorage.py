@@ -133,6 +133,7 @@ class Db(object):
         """Backs up the hash db."""
         if os.path.isfile(self.hash_db_location):
             mask = strftime('%Y-%m-%d_%H-%M-%S')
+            config = load_config()
             if('File' in config):
                 config_file = config['File']
                 if 'date' in config_file:
