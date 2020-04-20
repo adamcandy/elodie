@@ -25,7 +25,9 @@ def info_json(payload):
 
 def progress(message='.', new_line=False):
     if not new_line:
-        print(message, end="")
+        #print(message, end="")
+        sys.stdout.write(message)
+        sys.stdout.flush()
     else:
         print(message)
 
