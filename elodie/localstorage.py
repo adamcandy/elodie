@@ -33,7 +33,7 @@ class Db(object):
         config = load_config()
         if('Library' in config):
             config_library = config['Library']
-            if bool(config_library['local_hash']):
+            if bool(strtobool(config_library['local_hash'])):
                 if('root' in config_library):
                     self.library_root = os.path.abspath(os.path.expanduser(config_library['root']))
                     self.is_local_hash = True

@@ -143,13 +143,13 @@ def _import(destination, source, file, album_from_folder, album_from_dest_folder
     if('Library' in config):
         config_library = config['Library']
         if('move_on_import' in config_library):
-            move = move or bool(config_library['move_on_import'])
+            move = move or bool(strtobool(config_library['move_on_import']))
         if('hospital' in config_library):
             hospital = config_library['hospital']
             hospital = _decode(hospital)
             hospital = os.path.abspath(os.path.expanduser(hospital))
         if('trash' in config_library):
-            trash = trash or bool(config_library['trash'])
+            trash = trash or bool(strtobool(config_library['trash']))
         if('trashbin' in config_library):
             trashbin = config_library['trashbin']
             trashbin = _decode(trashbin)
@@ -158,7 +158,7 @@ def _import(destination, source, file, album_from_folder, album_from_dest_folder
     if('Metadata' in config):
         metadata_library = config['Metadata']
         if('album_from_dest_folder' in metadata_library):
-            album_from_dest_folder = album_from_dest_folder or bool(metadata_library['album_from_dest_folder'])
+            album_from_dest_folder = album_from_dest_folder or bool(strtobool(metadata_library['album_from_dest_folder']))
 
     files = set()
     paths = set(paths)
