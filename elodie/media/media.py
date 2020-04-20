@@ -66,7 +66,7 @@ class Media(Base):
 
         for album_key in self.album_keys:
             if album_key in exiftool_attributes:
-                return exiftool_attributes[album_key]
+                return str(exiftool_attributes[album_key])
 
         return None
 
