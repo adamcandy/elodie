@@ -49,15 +49,17 @@ class PluginBase(object):
 
     def log(self, msg):
         # Writes an info log not shown unless being run in --debug mode.
-        log.info(dumps(
-            {self.__name__: msg}
-        ))
+        #log.info(dumps(
+        #    {self.__name__: msg}
+        #))
+        log.info('[%s] %s' % (self.__name__, msg))
 
     def display(self, msg):
         # Writes a log for all modes and will be displayed.
-        log.all(dumps(
-            {self.__name__: msg}
-        ))
+        #log.all(dumps(
+        #    {self.__name__: msg}
+        #))
+        log.all('[%s] %s' % (self.__name__, msg))
 
 class PluginDb(object):
     """A database module which provides a simple key/value database.
