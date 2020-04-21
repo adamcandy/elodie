@@ -29,6 +29,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2.credentials import Credentials
 
+from requests.exceptions import ConnectionError, Timeout, RequestException
+
 from elodie.media.photo import Photo
 from elodie.media.video import Video
 from elodie.plugins.plugins import PluginBase
@@ -134,8 +136,19 @@ class GooglePhotos(PluginBase):
 
         with open(path_to_photo, 'rb') as f:
             photo_bytes = f.read()
+        
+        try:
+            upload_token = self.session.post(self.upload_url, photo_bytes)
+        except Timeout:
+            self.log('Timeout when uploading media: {}'.format(path_to_photo))
+            return None
+        except ConnectionError:
+            self.log('Connection failed when uploading media: {}'.format(path_to_photo))
+            return None
+        except RequestException as e:
+            self.log('Catastrophic error when uploading media: {}'.format(path_to_photo))
+            raise SystemExit(e)
 
-        upload_token = self.session.post(self.upload_url, photo_bytes)
         if(upload_token.status_code != 200 or not upload_token.content):
             self.log('Uploading media failed: ({}) {}'.format(upload_token.status_code, upload_token.content))
             return None
