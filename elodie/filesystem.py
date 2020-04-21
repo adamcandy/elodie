@@ -352,11 +352,11 @@ class FileSystem(object):
         if path_parts is None:
             path_parts = self.get_folder_path_definition()
 
-        # asc Naughty specific hack for Apple Photostream imports
-        if metadata:
-            if metadata['album']:
-                if metadata['album'].startswith('Photostream '):
-                    path_parts[0] = [('"Photostreams"', '')]
+        # # asc Naughty specific hack for Apple Photostream imports
+        # if metadata:
+        #     if metadata['album']:
+        #         if metadata['album'].startswith('Photostream '):
+        #             path_parts[0] = [('"Photostreams"', '')]
 
         path = []
         for path_part in path_parts:
