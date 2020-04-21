@@ -73,17 +73,20 @@ class GooglePhotos(PluginBase):
         queue = self.db.get_all()
         status = True
         count = 0
+        successes = 0
+        total = len(queue)
         for key in queue:
+            count += 1
             this_status = self.upload(key)
             if(this_status):
-                # Remove from queue if successful then increment count
+                # Remove from queue if successful then increment successes
                 self.db.delete(key)
-                count = count + 1
-                self.display('{} uploaded successfully.'.format(key))
+                successes += 1
+                self.display('{}/{} {} uploaded successfully.'.format(count, total, key))
             else:
                 status = False
-                self.display('{} failed to upload.'.format(key))
-        return (status, count)
+                self.display('{}/{} {} failed to upload.'.format(count, total, key))
+        return (status, successes)
 
     def before(self, file_path, destination_folder):
         pass
