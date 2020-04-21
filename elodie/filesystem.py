@@ -356,7 +356,7 @@ class FileSystem(object):
         if metadata:
             if metadata['album']:
                 if metadata['album'].startswith('Photostream '):
-                    path_parts[0] = u'%"Photostreams"'
+                    path_parts[0] = [('"Photostreams"', '')]
 
         path = []
         for path_part in path_parts:
