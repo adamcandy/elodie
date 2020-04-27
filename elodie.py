@@ -116,7 +116,9 @@ def _batch(debug):
 @click.option('--exclude-regex', default=set(), multiple=True,
               help='Regular expression for directories or files to exclude.')
 @click.argument('paths', nargs=-1, type=click.Path())
-def _import(destination, source, file, album_from_folder, album_from_dest_folder, move, trash, allow_duplicates, debug, exclude_regex, paths):
+@click.option('--directory', default=None,
+              help='Override Directoty full_path config spec.')
+def _import(destination, source, file, album_from_folder, album_from_dest_folder, move, trash, allow_duplicates, debug, exclude_regex, paths, directory):
     """Import files or directories by reading their EXIF and organizing them accordingly.
     """
     constants.debug = debug
@@ -176,6 +178,9 @@ def _import(destination, source, file, album_from_folder, album_from_dest_folder
             exclude_regex = [value for key, value in config.items('Exclusions')]
 
     exclude_regex_list = set(exclude_regex)
+
+    if directory:
+        FILESYSTEM.enforce_folder_path_defintion(directory)
 
     for path in paths:
         path = os.path.expanduser(path)
@@ -325,11 +330,13 @@ def update_time(media, file_path, time_string):
 @click.option('--time', help=('Update the image time. Time should be in '
                               'YYYY-mm-dd hh:ii:ss or YYYY-mm-dd format.'))
 @click.option('--title', help='Update the image title.')
-@click.option('--debug', default=False, is_flag=True,
-              help='Override the value in constants.py with True.')
 @click.argument('paths', nargs=-1,
                 required=True)
-def _update(album, location, time, title, paths, debug):
+@click.option('--debug', default=False, is_flag=True,
+              help='Override the value in constants.py with True.')
+@click.option('--directory', default=None,
+              help='Override Directoty full_path config spec.')
+def _update(album, location, time, title, paths, debug, directory):
     """Update a file's EXIF. Automatically modifies the file's location and file name accordingly.
     """
     constants.debug = debug
@@ -413,6 +420,10 @@ def _update(album, location, time, title, paths, debug):
                 updated_media.get_metadata()
                 updated_media.set_metadata_basename(
                     original_base_name.replace('-%s' % original_title, ''))
+            
+            if directory:
+                FILESYSTEM.enforce_folder_path_defintion(directory)
+
 
             dest_path = FILESYSTEM.process_file(current_file, destination,
                 updated_media, move=True, allowDuplicate=True)

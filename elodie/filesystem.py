@@ -285,7 +285,12 @@ class FileSystem(object):
         self.cached_file_name_definition = (config_file['name'], self.cached_file_name_definition)
         return self.cached_file_name_definition
 
-    def get_folder_path_definition(self):
+    def enforce_folder_path_defintion(self, definition):
+        self.cached_folder_path_definition = None
+        self.get_folder_path_definition(definition)
+        
+
+    def get_folder_path_definition(self, definition=None):
         """Returns a list of folder definitions.
 
         Each element in the list represents a folder.
@@ -318,9 +323,12 @@ class FileSystem(object):
         # Find all subpatterns of full_path that map to directories.
         #  I.e. %foo/%bar => ['foo', 'bar']
         #  I.e. %foo/%bar|%example|"something" => ['foo', 'bar|example|"something"']
+        if definition is None:
+            definition = config_directory['full_path']
+
         path_parts = re.findall(
                          '(\%[^/]+)',
-                         config_directory['full_path']
+                         definition
                      )
 
         if not path_parts or len(path_parts) == 0:
@@ -352,11 +360,11 @@ class FileSystem(object):
         if path_parts is None:
             path_parts = self.get_folder_path_definition()
 
-        # # asc Naughty specific hack for Apple Photostream imports
-        # if metadata:
-        #     if metadata['album']:
-        #         if metadata['album'].startswith('Photostream '):
-        #             path_parts[0] = [('"Photostreams"', '')]
+        # asc Naughty specific hack for Apple Photostream imports
+        if metadata:
+            if metadata['album']:
+                if metadata['album'].startswith('Photostream '):
+                    path_parts[0] = [('"Photostreams"', '')]
 
         path = []
         for path_part in path_parts:
