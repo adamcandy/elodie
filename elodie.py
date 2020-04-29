@@ -254,7 +254,7 @@ def _generate_db(source, debug):
         db.add_hash(db.checksum(current_file), current_file)
         progress = int( 100 * count / total )
         if ( progress > progress_logged):
-            log.progress('. (%d%%, %d files) ' % (progress, count))
+            log.progress('. (%d%%, %d of %d files) ' % (progress, count, total))
             progress_logged = progress
         else:
             log.progress()
