@@ -247,7 +247,7 @@ def _generate_db(source, debug):
     total = sum(1 for x in FILESYSTEM.get_all_files(source, None, exclude_regex_list))
     log.info('There are a total of %s files found' % total)
     count = 0
-    progress_logged = 0
+    progress_logged = -1
     for current_file in FILESYSTEM.get_all_files(source, None, exclude_regex_list):
         count += 1
         result.append((current_file, True))
