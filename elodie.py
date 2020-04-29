@@ -235,11 +235,20 @@ def _generate_db(source, debug):
     db.backup_hash_db()
     db.reset_hash_db()
 
-    total = sum(1 for x in FILESYSTEM.get_all_files(source)) 
+    exclude_regex = []
+    # if no exclude list was passed in we check if there's a config
+    if len(exclude_regex) == 0:
+        config = load_config()
+        if 'Exclusions' in config:
+            exclude_regex = [value for key, value in config.items('Exclusions')]
+
+    exclude_regex_list = set(exclude_regex)
+
+    total = sum(1 for x in FILESYSTEM.get_all_files(source, None, exclude_regex_list))
     log.info('There are a total of %s files found' % total)
     count = 0
     progress_logged = 0
-    for current_file in FILESYSTEM.get_all_files(source):
+    for current_file in FILESYSTEM.get_all_files(source, None, exclude_regex_list):
         count += 1
         result.append((current_file, True))
         db.add_hash(db.checksum(current_file), current_file)
